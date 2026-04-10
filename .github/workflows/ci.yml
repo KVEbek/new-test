@@ -1,0 +1,32 @@
+name: Docker Build and Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Create Secrets Directory
+      run: mkdir -p secrets
+
+    - name: Set up DB Password Secret
+      run: echo "${{ secrets.DB_PASSWORD }}" > secrets/db_password.txt
+
+    - name: Set up Keycloak Admin Password Secret
+      run: echo "${{ secrets.ADMIN_PASSWORD }}" > secrets/admin_password.txt
+
+    - name: Build and Run with Docker Compose
+      run: |
+        docker-compose up --build -d
+        sleep 30 # Wait for services to start
+        docker-compose ps
+        docker-compose logs keycloak
+        # Add tests or health checks here
+        docker-compose down
